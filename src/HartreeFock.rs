@@ -100,8 +100,8 @@ impl HF {
                                 }
                             }
                         }
-                        self.F.m[((el*sys.electrons[el as usize].num_basis)+b1) as usize][((el2*sys.electrons[el2 as usize].num_basis)+b2) as usize] = sum_col + 
-                            sum_corr + self.Hcore.m[((el*sys.electrons[el as usize].num_basis)+b1) as usize][((el2*sys.electrons[el2 as usize].num_basis)+b2) as usize];
+                        self.F.m[((el*sys.electrons[el as usize].num_basis)+b1) as usize][((el2*sys.electrons[el2 as usize].num_basis)+b2) as usize] = sum_col - 
+                            0.5 * sum_corr + self.Hcore.m[((el*sys.electrons[el as usize].num_basis)+b1) as usize][((el2*sys.electrons[el2 as usize].num_basis)+b2) as usize];
                     }
                 }
             }
@@ -175,6 +175,9 @@ impl HF {
 
     pub fn SCF(&mut self, sys: &System){
         println!("start scf");
+
+        let DIIS: bool = true;
+
         self.calc_Hore(sys);
         self.calc_S(sys);
         self.calc_dens(sys);
@@ -187,12 +190,6 @@ impl HF {
 
             HF::sort_MOs(&mut res.0, &mut res.1 );
 
-            for v in 0..sys.num_basis{
-                for y in 0..sys.num_basis{
-                    self.C.m[v as usize][y as usize] = res.0[(v as usize,y as usize)];
-                }
-            }
-
             /*
             println!("P : ");
             self.P.print_m();
@@ -201,13 +198,29 @@ impl HF {
             println!("F : ");
             self.F.print_m();
             */
+
+            println!("F : ");
+            self.F.print_m();
+
+            let old_P: M = self.P.clone();
+
             self.calc_dens(sys);
-            self.calc_S(sys);
+
+            for v in 0..sys.num_basis{
+                for y in 0..sys.num_basis{
+                    self.C.m[v as usize][y as usize] = res.0[(v as usize,y as usize)];
+
+                    self.P.m[v as usize][y as usize] *= 0.5;
+                    self.P.m[v as usize][y as usize] += old_P.m[v as usize][y as usize]*0.5;
+                }
+            }
             
             /*
             println!(" en : \n{}", res.1);
             println!(" C :  \n{}", res.0);
             */
+
+            println!(" C :  \n{}", res.0);
 
             println!("e_el : {}", self.get_tot_E(sys));
         }

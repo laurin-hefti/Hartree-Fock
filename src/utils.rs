@@ -1,3 +1,7 @@
+use statrs::function::erf::erf;
+
+const PI: f32 = std::f32::consts::PI;
+const e: f32 = std::f32::consts::E;
 
 // -- vector
 
@@ -27,8 +31,12 @@ pub fn double_fac(n: i64) -> i64 {
     return res;
 }
 
-// - linalg
+pub fn boys(t: f32) -> f32 {
+    return (1.0/2.0) * (PI/t).sqrt() * erf(t.sqrt() as f64) as f32;
+}
 
+// - linalg
+#[derive(Clone)]
 pub struct M {
     pub m: Vec<Vec<f32>>,
 }
@@ -46,8 +54,8 @@ impl M {
 
     pub fn print_m(&self){
         for v in &self.m{
-            for e in v{
-                print!("{} ", e);
+            for el in v{
+                print!("{} ", el);
             }
             println!("");
         }

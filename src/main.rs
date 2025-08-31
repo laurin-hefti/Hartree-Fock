@@ -12,20 +12,20 @@ fn main() {
     let el: system::Electron = Electron::new(vec![0.0,0.0,0.0], 
         -1.0/2.0, 
         Box::new(orb::GTO),
-        vec![0.0,0.0,0.0,1.2,orb::NORM_GTO(0.0, 0.0, 0.0, 1.2),
+        vec![
         0.0,0.0,0.0,0.8,orb::NORM_GTO(0.0, 0.0, 0.0, 0.8), 
         0.0,0.0,0.0,0.2,orb::NORM_GTO(0.0,0.0,0.0,0.2)],
-        vec![0.33,0.33,0.33],
+        vec![0.5,0.5],
     );
     let nu: system::Nucleus = Nucleus{n: 1, pos:vec![0.0,0.0,0.0]};
 
     let el2: system::Electron = Electron::new(vec![1.4,0.0,0.0], 
         -1.0/2.0, 
         Box::new(orb::GTO),
-        vec![0.0,0.0,0.0,1.2,orb::NORM_GTO(0.0, 0.0, 0.0, 1.2),
+        vec![
         0.0,0.0,0.0,0.8,orb::NORM_GTO(0.0, 0.0, 0.0, 0.8), 
         0.0,0.0,0.0,0.2,orb::NORM_GTO(0.0, 0.0, 0.0, 0.2)],
-        vec![0.33,0.33,0.33],
+        vec![0.5,0.5],
     );
     let nu2: system::Nucleus = Nucleus{n: 1, pos:vec![1.4,0.0,0.0]};
 

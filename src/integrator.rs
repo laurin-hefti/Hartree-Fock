@@ -2,6 +2,10 @@ use crate::settings;
 use crate::system::*;
 use crate::utils::*;
 
+pub const PI: f32 = std::f32::consts::PI;
+pub const e: f32 = std::f32::consts::E;
+
+
 pub fn num_int_pot_en(el: &Electron, el2: &Electron, nucleus: &Vec<Nucleus>, i: i32, j: i32) -> f32{
     let mut sum: f32 = 0.0;
 
@@ -136,8 +140,8 @@ pub fn num_tow_el_int(e1: &Electron, e2: &Electron, e3: &Electron, e4: &Electron
         }
     }
 
-    sum[0] *= 1.0;
-    sum[1] *= -0.5;
+    //sum[0] *= 1.0;
+    //sum[1] *= -0.5;
     return sum;
 }
 
@@ -162,3 +166,55 @@ pub fn num_int_overlap(e1: &Electron, e2: &Electron, i:i32, j:i32) -> f32{
 
     return sum;
 }
+
+//for primitives
+pub fn an_s_overlap(e1: &Electron, e2: &Electron, i: i32, j: i32) -> f32{
+    let a: f32 = e1.c_orb[(i*4+3) as usize];
+    let b: f32 = e2.c_orb[(j*4+3) as usize];
+
+    return (PI / (a+b)).powf(3.0/2.0) * 
+        e.powf(-((a*b)/(a+b)) * len_vec(&sub_vec(&e1.pos, &e2.pos)).powf(2.0));
+}
+
+pub fn an_s_kin(e1: &Electron, e2: &Electron, i: i32, j: i32) -> f32{
+    let a: f32 = e1.c_orb[(i*4+3) as usize];
+    let b: f32 = e2.c_orb[(j*4+3) as usize];
+    let y: f32 = (a*b)/(a+b);
+
+    let s: f32 = (PI / (a+b)).powf(3.0/2.0) * 
+        e.powf(-y * len_vec(&sub_vec(&e1.pos, &e2.pos)).powf(2.0));
+
+    return (y * (3.0-2.0*y*len_vec(&sub_vec(&e1.pos, &e2.pos)).powf(2.0)) * s);
+}
+
+pub fn an_s_pot(e1: &Electron, e2: &Electron, nucleus: &Vec<Nucleus>, i: i32, j: i32) -> f32{
+    let a: f32 = e1.c_orb[(i*4+3) as usize];
+    let b: f32 = e2.c_orb[(j*4+3) as usize];
+    let y: f32 = (a*b)/(a+b);
+
+    let mut sum: f32 = 0.0;
+
+    for z in 0..nucleus.len(){
+        sum += - nucleus[z].n as f32 * ((2.0*PI)/(a+b)) *
+            e.powf(-y * len_vec(&sub_vec(&e1.pos, &e2.pos)).powf(2.0)) *
+            boys((a*b) * len_vec(&sub_vec(&e1.pos, &nucleus[z].pos)));
+    }
+
+    return sum;
+}
+
+pub fn an_s_two_el(e1: &Electron, e2: &Electron, e3: &Electron, e4: &Electron,
+    i:i32, j:i32, k:i32, l:i32) -> Vec<f32> {
+    let mut sum: Vec<f32> = vec![0.0,0.0];
+
+    let mut corr = false;
+    if e1.spin == e2.spin {
+        corr = true;
+    }
+
+    let v_e1_e2: Vec<f32> = sub_vec(&e2.pos, &e1.pos);
+
+    
+
+    return sum;
+    }
