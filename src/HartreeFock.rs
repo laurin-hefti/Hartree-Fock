@@ -88,7 +88,7 @@ impl HF {
                                 for b3 in 0..sys.electrons[el3 as usize].num_basis{
                                     for b4 in 0..sys.electrons[el4 as usize].num_basis{
                                         
-                                        let res:Vec<f32> = integrator::num_tow_el_int(&sys.electrons[el as usize],
+                                        let res:Vec<f32> = integrator::an_s_two_el(&sys.electrons[el as usize],
                                             &sys.electrons[el2 as usize],
                                             &sys.electrons[el3 as usize],
                                             &sys.electrons[el4 as usize],
@@ -161,12 +161,26 @@ impl HF {
         }
     }
 
+    fn test_calculation(&self, sys: &System) {
+        //test nu of electrons
+        let mut tot_el_dens: f32 = 0.0;
+
+        for e1 in 0..sys.num_basis {
+            for e2 in 0..sys.num_basis{
+                tot_el_dens += self.P.m[e1 as usize][e2 as usize] * self.S.m[e2 as usize][e1 as usize];
+            }
+        }
+
+        println!("total electron density : {} of {}", tot_el_dens, sys.electrons.len());
+    }
+
     fn get_tot_E(&self, sys: &System) -> f32{
         let mut e_tot: f32 = 0.0;
 
         for v in 0..sys.num_basis {
             for y in 0..sys.num_basis {
-                e_tot += self.P.m[v as usize][y as usize] * self.Hcore.m[v as usize][y as usize] + 0.5 * self.P.m[v as usize][y as usize] * self.F.m[v as usize][y as usize];
+                e_tot += 0.5 * (self.P.m[v as usize][y as usize] * self.Hcore.m[v as usize][y as usize] + 
+                    1.0 * self.P.m[v as usize][y as usize] * self.F.m[v as usize][y as usize]);
             }
         }
 
@@ -223,6 +237,7 @@ impl HF {
             println!(" C :  \n{}", res.0);
 
             println!("e_el : {}", self.get_tot_E(sys));
+            self.test_calculation(sys);
         }
     
         println!("end scf");

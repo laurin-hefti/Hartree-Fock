@@ -17,6 +17,10 @@ pub fn add_vec(c1: &Vec<f32>, c2: &Vec<f32>) -> Vec<f32>{
     return vec![c1[0]+c2[0],c1[1]+c2[1],c1[2]+c2[2]];
 }
 
+
+pub fn scale_vec(c1: &Vec<f32>, s: f32) -> Vec<f32>{
+    return vec![c1[0]*s,c1[1]*s,c1[2]*s];
+}
 // -- math
 
 pub fn double_fac(n: i64) -> i64 {

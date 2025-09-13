@@ -187,34 +187,64 @@ pub fn an_s_kin(e1: &Electron, e2: &Electron, i: i32, j: i32) -> f32{
     return (y * (3.0-2.0*y*len_vec(&sub_vec(&e1.pos, &e2.pos)).powf(2.0)) * s);
 }
 
+//achtung nicht ganz korrekt, produkt in der boys funkion nicht richtig
 pub fn an_s_pot(e1: &Electron, e2: &Electron, nucleus: &Vec<Nucleus>, i: i32, j: i32) -> f32{
     let a: f32 = e1.c_orb[(i*4+3) as usize];
     let b: f32 = e2.c_orb[(j*4+3) as usize];
     let y: f32 = (a*b)/(a+b);
+
+    let p_center: Vec<f32> = scale_vec(
+        &add_vec(&scale_vec(&e1.pos, a), &scale_vec(&e2.pos, b)),
+    1.0/(a+b));
 
     let mut sum: f32 = 0.0;
 
     for z in 0..nucleus.len(){
         sum += - nucleus[z].n as f32 * ((2.0*PI)/(a+b)) *
             e.powf(-y * len_vec(&sub_vec(&e1.pos, &e2.pos)).powf(2.0)) *
-            boys((a*b) * len_vec(&sub_vec(&e1.pos, &nucleus[z].pos)));
+            boys((a*b) * len_vec(&sub_vec(&p_center, &nucleus[z].pos)));
     }
 
     return sum;
 }
 
+//for primitives
 pub fn an_s_two_el(e1: &Electron, e2: &Electron, e3: &Electron, e4: &Electron,
     i:i32, j:i32, k:i32, l:i32) -> Vec<f32> {
     let mut sum: Vec<f32> = vec![0.0,0.0];
 
     let mut corr = false;
+
     if e1.spin == e2.spin {
         corr = true;
     }
 
-    let v_e1_e2: Vec<f32> = sub_vec(&e2.pos, &e1.pos);
+    let a: f32 = e1.alpha[(i*4+3) as usize];
+    let b: f32 = e2.alpha[(j*4+3) as usize];
+    let y: f32 = e3.alpha[(k*4+3) as usize];
+    let d: f32 = e4.alpha[(l*4+3) as usize];
+    let p: f32 = a+b;
+    let q: f32 = y+d;
+    let yab: f32 = (a*b)/p;
+    let yyd: f32 = (y*d)/q;
 
-    
+    let p_center: Vec<f32> = scale_vec(
+        &add_vec(&scale_vec(&e1.pos, a), &scale_vec(&e2.pos, b)),
+        1.0/p);
+
+    let q_center: Vec<f32> = scale_vec(
+        &add_vec(&scale_vec(&e3.pos, y), &scale_vec(&e4.pos, d)),
+        1.0/q);
+
+    sum[0] = (((2.0*PI).powf(5.0/2.0)) / ((p*q)*(p+q).sqrt())) *
+        e.powf(-yab * len_vec(&sub_vec(&e1.pos, &e2.pos)).powf(2.0)
+                - yyd * len_vec(&sub_vec(&e3.pos, &e4.pos))
+            * boys((p*q)/(p+q) * len_vec(&sub_vec(&p_center, &q_center)).powf(2.0))
+        );
+
+    if corr {
+        sum[1] = sum[0];
+    }
 
     return sum;
     }
