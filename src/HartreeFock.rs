@@ -1,4 +1,4 @@
-use std::f32::INFINITY;
+use std::f64::INFINITY;
 
 use crate::integrator;
 use crate::system::*;
@@ -88,7 +88,7 @@ impl HF {
                                 for b3 in 0..sys.electrons[el3 as usize].num_basis{
                                     for b4 in 0..sys.electrons[el4 as usize].num_basis{
                                         
-                                        let res:Vec<f32> = integrator::an_s_two_el(&sys.electrons[el as usize],
+                                        let res:Vec<f64> = integrator::an_s_two_el(&sys.electrons[el as usize],
                                             &sys.electrons[el2 as usize],
                                             &sys.electrons[el3 as usize],
                                             &sys.electrons[el4 as usize],
@@ -108,10 +108,10 @@ impl HF {
         }
     }
 
-    pub fn Roothaan_Haal(&mut self, sys: &System) -> (DMatrix<f32>, DVector<f32>){
-        let o_flat: Vec<f32> = self.S.m.iter().flatten().cloned().collect();
+    pub fn Roothaan_Haal(&mut self, sys: &System) -> (DMatrix<f64>, DVector<f64>){
+        let o_flat: Vec<f64> = self.S.m.iter().flatten().cloned().collect();
         let overlap = DMatrix::from_row_slice(sys.num_basis as usize, sys.num_basis as usize, &o_flat[..]);
-        let f_flat: Vec<f32> = self.F.m.iter().flatten().cloned().collect();
+        let f_flat: Vec<f64> = self.F.m.iter().flatten().cloned().collect();
         let fock = DMatrix::from_row_slice(sys.num_basis as usize, sys.num_basis as usize, &f_flat[..]);
 
         let s_eigen = SymmetricEigen::new(overlap.clone());
@@ -138,7 +138,7 @@ impl HF {
         return (c, eps);
     }
 
-    fn sort_MOs(c: &mut DMatrix<f32>, e: &mut DVector<f32>) {
+    fn sort_MOs(c: &mut DMatrix<f64>, e: &mut DVector<f64>) {
         let mut e_copy = e.clone();
         let c_copy = c.clone();
 
@@ -163,7 +163,7 @@ impl HF {
 
     fn test_calculation(&self, sys: &System) {
         //test nu of electrons
-        let mut tot_el_dens: f32 = 0.0;
+        let mut tot_el_dens: f64= 0.0;
 
         for e1 in 0..sys.num_basis {
             for e2 in 0..sys.num_basis{
@@ -174,13 +174,13 @@ impl HF {
         println!("total electron density : {} of {}", tot_el_dens, sys.electrons.len());
     }
 
-    fn get_tot_E(&self, sys: &System) -> f32{
-        let mut e_tot: f32 = 0.0;
+    fn get_tot_E(&self, sys: &System) -> f64{
+        let mut e_tot: f64= 0.0;
 
         for v in 0..sys.num_basis {
             for y in 0..sys.num_basis {
                 e_tot += 0.5 * (self.P.m[v as usize][y as usize] * self.Hcore.m[v as usize][y as usize] + 
-                    1.0 * self.P.m[v as usize][y as usize] * self.F.m[v as usize][y as usize]);
+                    self.P.m[v as usize][y as usize] * self.F.m[v as usize][y as usize]);
             }
         }
 
@@ -196,11 +196,10 @@ impl HF {
         self.calc_S(sys);
         self.calc_dens(sys);
 
-        for it in 0..20 {
-            println!("it : {}", it);
+        for it in 0..80 {
             self.clac_Fock(sys);
 
-            let mut res: (DMatrix<f32>, DVector<f32>) = self.Roothaan_Haal(sys);
+            let mut res: (DMatrix<f64>, DVector<f64>) = self.Roothaan_Haal(sys);
 
             HF::sort_MOs(&mut res.0, &mut res.1 );
 
@@ -213,8 +212,8 @@ impl HF {
             self.F.print_m();
             */
 
-            println!("F : ");
-            self.F.print_m();
+            //println!("F : ");
+            //self.F.print_m();
 
             let old_P: M = self.P.clone();
 
@@ -224,8 +223,8 @@ impl HF {
                 for y in 0..sys.num_basis{
                     self.C.m[v as usize][y as usize] = res.0[(v as usize,y as usize)];
 
-                    self.P.m[v as usize][y as usize] *= 0.5;
-                    self.P.m[v as usize][y as usize] += old_P.m[v as usize][y as usize]*0.5;
+                    self.P.m[v as usize][y as usize] *= 0.4;
+                    self.P.m[v as usize][y as usize] += old_P.m[v as usize][y as usize]*0.6;
                 }
             }
             
@@ -234,10 +233,10 @@ impl HF {
             println!(" C :  \n{}", res.0);
             */
 
-            println!(" C :  \n{}", res.0);
+            //println!(" C :  \n{}", res.0);
 
-            println!("e_el : {}", self.get_tot_E(sys));
-            self.test_calculation(sys);
+            println!("it: {it}  e_el : {}", self.get_tot_E(sys));
+            //self.test_calculation(sys);
         }
     
         println!("end scf");

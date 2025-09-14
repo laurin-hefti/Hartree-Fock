@@ -3,23 +3,23 @@ use core::num;
 use crate::orb;
 
 pub struct Nucleus {
-    pub pos: Vec<f32>,
+    pub pos: Vec<f64>,
     pub n: i32,
 }
 
 impl Nucleus {
-    pub fn new(pos: Vec<f32>, n: i32) -> Nucleus{
+    pub fn new(pos: Vec<f64>, n: i32) -> Nucleus{
         return Nucleus{pos:pos, n:n};
     }
 }
 
 pub struct Electron {
-    pub pos: Vec<f32>,
-    pub spin: f32,
-    pub orb: Box<dyn Fn(&Vec<f32>, &Vec<f32>) -> f32 + 'static>,
+    pub pos: Vec<f64>,
+    pub spin: f64,
+    pub orb: Box<dyn Fn(&Vec<f64>, &Vec<f64>) -> f64+ 'static>,
 
-    pub alpha: Vec<f32>,
-    pub c_orb: Vec<f32>,
+    pub alpha: Vec<f64>,
+    pub c_orb: Vec<f64>,
 
     pub num_basis: i32,
 }
@@ -27,9 +27,9 @@ pub struct Electron {
 // alpha [l,m,n,alpha,N], first 3 elements are the angular momentum after the alpha value and then the norm
 
 impl Electron {
-    pub fn new(pos: Vec<f32>, spin: f32, 
-        orb: Box<dyn Fn(&Vec<f32>, &Vec<f32>) -> f32 + 'static>, 
-        alpha: Vec<f32>, c_orb: Vec<f32>) ->Electron {
+    pub fn new(pos: Vec<f64>, spin: f64, 
+        orb: Box<dyn Fn(&Vec<f64>, &Vec<f64>) -> f64+ 'static>, 
+        alpha: Vec<f64>, c_orb: Vec<f64>) ->Electron {
 
             let num_basis: i32 = alpha.len() as i32 / 5;
             if num_basis != c_orb.len() as i32 {
@@ -40,8 +40,8 @@ impl Electron {
     }
 
     /*
-    pub fn get_value(&self, c: &Vec<f32>) -> f32 {
-        let mut sum: f32 = 0.0;
+    pub fn get_value(&self, c: &Vec<f64>) -> f64{
+        let mut sum: f64= 0.0;
         for i in 0..self.num_basis {
             sum += self.c_orb[i as usize] * (self.orb)(c, &self.alpha[(i*5) as usize..(i*5 + 5) as usize].to_vec());
         }
@@ -49,11 +49,11 @@ impl Electron {
     }
     */
 
-    pub fn get_sing_value(&self, c: &Vec<f32>, i: i32) -> f32 {
+    pub fn get_sing_value(&self, c: &Vec<f64>, i: i32) -> f64{
         return (self.orb)(c, &self.alpha[(i*5) as usize..(i*5 + 5) as usize].to_vec())
     }
 
-    pub fn update_alpha(&mut self, a: f32, i: i32) {
+    pub fn update_alpha(&mut self, a: f64, i: i32) {
         self.alpha[(i*5+3) as usize] = a;
         self.alpha[(i*5+4) as usize] = orb::NORM_GTO(self.alpha[(i*5+0) as usize], self.alpha[(i*5+1) as usize], self.alpha[(i*5+2) as usize], self.alpha[(i*5+3) as usize]);
     }
