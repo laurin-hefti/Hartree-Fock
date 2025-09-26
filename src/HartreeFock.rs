@@ -34,7 +34,7 @@ impl HF {
                     for b2 in 0..sys.electrons[el2 as usize].num_basis{
                         
                         self.S.m[((el*sys.electrons[el as usize].num_basis)+b1) as usize][((el2*sys.electrons[el2 as usize].num_basis)+b2) as usize] = 
-                        integrator::num_int_overlap(&sys.electrons[(el) as usize], 
+                        integrator::an_s_overlap(&sys.electrons[(el) as usize], 
                     &sys.electrons[(el2) as usize], b1, b2);
                     }
                 }
@@ -49,10 +49,10 @@ impl HF {
                     for b2 in 0..sys.electrons[el2 as usize].num_basis{
                         
                         self.Hcore.m[((el*sys.electrons[el as usize].num_basis)+b1) as usize][((el2*sys.electrons[el2 as usize].num_basis)+b2) as usize] = 
-                        integrator::num_int_pot_en(&sys.electrons[el as usize],
+                        integrator::an_s_pot(&sys.electrons[el as usize],
                              &sys.electrons[el2 as usize],  &sys.nucleus, b1, b2)
                              +
-                             integrator::num_int_kin_en(&sys.electrons[el as usize], 
+                             integrator::an_s_kin(&sys.electrons[el as usize], 
                                 &sys.electrons[el2 as usize], b1, b2);
                     }
                 }
@@ -66,7 +66,7 @@ impl HF {
             for y in 0..sys.num_basis{
                 let mut sum =  0.0;
                 for i in 0..sys.electrons.len()/2{
-                    sum += self.C.m[v as usize][i] * self.C.m[y as usize][i];// * 2.0;
+                    sum += self.C.m[v as usize][i] * self.C.m[y as usize][i];
                 }
                 
                 self.P.m[v as usize][y as usize] = 2.0 * sum;
@@ -120,8 +120,9 @@ impl HF {
 
         let d_inv_sqrt = DMatrix::from_diagonal(
             &s_vals.map(|x|{
-                if x > 0.0 { 1.0 / x.sqrt()}
-                else {println!("error in diagonalisation? negativ value"); 0.0}
+                if x > 10e-6 { 1.0 / x.sqrt()}
+                else {//println!("error in diagonalisation? negativ value"); 
+                0.0}
             })
         );
         let x = &s_vecs * d_inv_sqrt * s_vecs.transpose();
@@ -179,8 +180,8 @@ impl HF {
 
         for v in 0..sys.num_basis {
             for y in 0..sys.num_basis {
-                e_tot += 0.5 * (self.P.m[v as usize][y as usize] * self.Hcore.m[v as usize][y as usize] + 
-                    self.P.m[v as usize][y as usize] * self.F.m[v as usize][y as usize]);
+                e_tot += 1.0 * (self.P.m[v as usize][y as usize] * self.Hcore.m[v as usize][y as usize] + 
+                    0.5 * self.P.m[v as usize][y as usize] * self.F.m[v as usize][y as usize]);
             }
         }
 
@@ -196,7 +197,7 @@ impl HF {
         self.calc_S(sys);
         self.calc_dens(sys);
 
-        for it in 0..80 {
+        for it in 0..40 {
             self.clac_Fock(sys);
 
             let mut res: (DMatrix<f64>, DVector<f64>) = self.Roothaan_Haal(sys);
@@ -234,9 +235,8 @@ impl HF {
             */
 
             //println!(" C :  \n{}", res.0);
-
+            
             println!("it: {it}  e_el : {}", self.get_tot_E(sys));
-            //self.test_calculation(sys);
         }
     
         println!("end scf");

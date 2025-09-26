@@ -169,27 +169,33 @@ pub fn num_int_overlap(e1: &Electron, e2: &Electron, i:i32, j:i32) -> f64{
 
 //for primitives
 pub fn an_s_overlap(e1: &Electron, e2: &Electron, i: i32, j: i32) -> f64{
-    let a: f64= e1.alpha[(i*4+3) as usize];
-    let b: f64= e2.alpha[(j*4+3) as usize];
+    let a: f64= e1.alpha[(i*5+3) as usize];
+    let b: f64= e2.alpha[(j*5+3) as usize];
+    let n1: f64 = e1.alpha[(i*5+4) as usize];
+    let n2: f64 = e1.alpha[(j*5+4) as usize];
 
-    return (PI / (a+b)).powf(3.0/2.0) * 
+    return n1 * n2 * (PI / (a+b)).powf(3.0/2.0) * 
         e.powf(-((a*b)/(a+b)) * len_vec(&sub_vec(&e1.pos, &e2.pos)).powf(2.0));
 }
 
 pub fn an_s_kin(e1: &Electron, e2: &Electron, i: i32, j: i32) -> f64{
-    let a: f64= e1.alpha[(i*4+3) as usize];
-    let b: f64= e2.alpha[(j*4+3) as usize];
+    let a: f64= e1.alpha[(i*5+3) as usize];
+    let b: f64= e2.alpha[(j*5+3) as usize];
+    let n1: f64 = e1.alpha[(i*5+4) as usize];
+    let n2: f64 = e1.alpha[(j*5+4) as usize];
     let y: f64= (a*b)/(a+b);
 
-    let s: f64= (PI / (a+b)).powf(3.0/2.0) * 
+    let s: f64= n1 * n2 * (PI / (a+b)).powf(3.0/2.0) * 
         e.powf(-y * len_vec(&sub_vec(&e1.pos, &e2.pos)).powf(2.0));
 
     return (y * (3.0-2.0*y*len_vec(&sub_vec(&e1.pos, &e2.pos)).powf(2.0)) * s);
 }
 
 pub fn an_s_pot(e1: &Electron, e2: &Electron, nucleus: &Vec<Nucleus>, i: i32, j: i32) -> f64{
-    let a: f64= e1.alpha[(i*4+3) as usize];
-    let b: f64= e2.alpha[(j*4+3) as usize];
+    let a: f64= e1.alpha[(i*5+3) as usize];
+    let b: f64= e2.alpha[(j*5+3) as usize];
+    let n1: f64 = e1.alpha[(i*5+4) as usize];
+    let n2: f64 = e1.alpha[(j*5+4) as usize];
     let y: f64= (a*b)/(a+b);
 
     let p_center: Vec<f64> = scale_vec(
@@ -199,7 +205,7 @@ pub fn an_s_pot(e1: &Electron, e2: &Electron, nucleus: &Vec<Nucleus>, i: i32, j:
     let mut sum: f64= 0.0;
 
     for z in 0..nucleus.len(){
-        sum += - nucleus[z].n as f64* ((2.0*PI)/(a+b)) *
+        sum += - nucleus[z].n as f64 * n1 * n2 *((2.0*PI)/(a+b)) *
             e.powf(-y * len_vec(&sub_vec(&e1.pos, &e2.pos)).powf(2.0)) *
             boys((a*b) * len_vec(&sub_vec(&p_center, &nucleus[z].pos)));
     }
@@ -218,16 +224,19 @@ pub fn an_s_two_el(e1: &Electron, e2: &Electron, e3: &Electron, e4: &Electron,
         corr = true;
     }
 
-    let  a: f64= e1.alpha[(i*4+3) as usize];
-    let b: f64= e2.alpha[(j*4+3) as usize];
-    let y: f64= e3.alpha[(k*4+3) as usize];
-    let d: f64= e4.alpha[(l*4+3) as usize];
+    let  a: f64= e1.alpha[(i*5+3) as usize];
+    let b: f64= e2.alpha[(j*5+3) as usize];
+    let y: f64= e3.alpha[(k*5+3) as usize];
+    let d: f64= e4.alpha[(l*5+3) as usize];
+    let n1: f64 = e1.alpha[(i*5+4) as usize];
+    let n2: f64 = e1.alpha[(j*5+4) as usize];
+    let n3: f64 = e1.alpha[(k*5+4) as usize];
+    let n4: f64 = e1.alpha[(l*5+4) as usize];
     let mut p: f64= a+b;
     let mut q: f64= y+d;
-    if p == 0.0 {p = 10e-6;}
-    if q == 0.0 {q = 10e-6;}
+    if p < 10e-6 {p = 10e-6;}       //not necesary because alphy is not so little
+    if q < 10e-6 {q = 10e-6;}
     let mut pq = p+q;
-    if pq == 0.0 {pq = 10e-6;}
     let yab: f64= (a*b)/p;
     let yyd: f64= (y*d)/q;
 
@@ -239,16 +248,24 @@ pub fn an_s_two_el(e1: &Electron, e2: &Electron, e3: &Electron, e4: &Electron,
         &add_vec(&scale_vec(&e3.pos, y), &scale_vec(&e4.pos, d)),
         1.0/q);
 
-    sum[0] = (((2.0*PI).powf(5.0/2.0)) / ((p*q)*(pq).sqrt())) *
-        e.powf(-yab * len_vec(&sub_vec(&e1.pos, &e2.pos)).powf(2.0)
-                - yyd * len_vec(&sub_vec(&e3.pos, &e4.pos)).powf(2.0))
-            * boys((p*q)/(pq) * len_vec(&sub_vec(&p_center, &q_center)).powf(2.0));
+    let mut v_e1_e2: f64 = len_vec(&sub_vec(&e1.pos, &e2.pos)).powf(2.0);
+    let mut v_e3_e4: f64 = len_vec(&sub_vec(&e3.pos, &e4.pos)).powf(2.0);
+    let mut v_c1_c2: f64 = len_vec(&sub_vec(&p_center, &q_center)).powf(2.0);
+
+    if v_e1_e2 < 10e-6 {v_e1_e2 = 10e-6;}       //only check one side because is power of 2
+    if v_e3_e4 < 10e-6 {v_e3_e4 = 10e-6;}
+    if v_c1_c2 < 10e-6 {v_c1_c2 = 10e-6;}
+
+    sum[0] = n1 * n2 * n3 * n4 *  (((2.0*PI).powf(5.0/2.0)) / ((p*q)*(pq).sqrt())) *
+        e.powf(-yab * v_e1_e2
+                - yyd * v_e3_e4)
+            * boys((p*q)/(pq) * v_c1_c2);
 
     if corr {
         let mut p_cor = a+d;
         let mut q_cor = y+b;
-        if p_cor == 0.0 {p_cor = 10e-6;}
-        if q_cor == 0.0 {q_cor = 10e-6;}
+        if p_cor < 10e-6 {p_cor = 10e-6;}
+        if q_cor < 10e-6 {q_cor = 10e-6;}
         let pq_cor = p_cor + q_cor;
         let yad_cor = (a*d) / p_cor;
         let yyb_cor = (y*b) / q_cor;
@@ -260,12 +277,20 @@ pub fn an_s_two_el(e1: &Electron, e2: &Electron, e3: &Electron, e4: &Electron,
         let q_center_cor: Vec<f64> = scale_vec(
         &add_vec(&scale_vec(&e3.pos, y), &scale_vec(&e2.pos, b)),
         1.0/q_cor);
- 
-        sum[1] = (((2.0*PI).powf(5.0/2.0)) / ((p_cor*q_cor)*(pq_cor).sqrt())) *
-        e.powf(-yad_cor * len_vec(&sub_vec(&e1.pos, &e4.pos)).powf(2.0)
-                - yyb_cor * len_vec(&sub_vec(&e3.pos, &e2.pos)).powf(2.0))
-            * boys((p_cor*q_cor)/(pq_cor) * len_vec(&sub_vec(&p_center_cor, &q_center_cor)).powf(2.0));
-    }
 
+        let mut v_e1_e4: f64 = len_vec(&sub_vec(&e1.pos, &e4.pos)).powf(2.0);
+        let mut v_e2_e3: f64 = len_vec(&sub_vec(&e3.pos, &e2.pos)).powf(2.0);
+        let mut v_c1_c2_corr: f64 = len_vec(&sub_vec(&p_center_cor, &q_center_cor)).powf(2.0);
+        
+        if v_e1_e4 < 10e-6 {v_e1_e4 = 10e-6;}
+        if v_e2_e3 < 10e-6 {v_e2_e3 = 10e-6;}
+        if v_c1_c2_corr < 10e-6 {v_c1_c2_corr = 10e-6;}
+ 
+        sum[1] = n1 * n2 * n3 * n4 * (((2.0*PI).powf(5.0/2.0)) / ((p_cor*q_cor)*(pq_cor).sqrt())) *
+        e.powf(-yad_cor * v_e1_e4
+                - yyb_cor * v_e2_e3)
+            * boys((p_cor*q_cor)/(pq_cor) * v_c1_c2_corr);
+    }
+    
     return sum;
     }

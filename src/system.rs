@@ -1,5 +1,3 @@
-use core::num;
-
 use crate::orb;
 
 pub struct Nucleus {
@@ -56,6 +54,10 @@ impl Electron {
     pub fn update_alpha(&mut self, a: f64, i: i32) {
         self.alpha[(i*5+3) as usize] = a;
         self.alpha[(i*5+4) as usize] = orb::NORM_GTO(self.alpha[(i*5+0) as usize], self.alpha[(i*5+1) as usize], self.alpha[(i*5+2) as usize], self.alpha[(i*5+3) as usize]);
+    }
+
+    pub fn print_alpha(&self){
+        println!("{:?}", self.alpha);
     }
 }
 

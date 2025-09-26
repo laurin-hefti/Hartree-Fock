@@ -18,7 +18,7 @@ pub fn NORM_1S_GTO(a: f64) -> f64{
 }
 
 pub fn NORM_GTO(l: f64, m: f64, n: f64, a: f64) -> f64{
-    return (
+    let val =  (
         (
             2.0_f64.powf(l+m+n+(3.0/2.0)) * a.powf(l+m+n+3.0/2.0)
         ) /
@@ -27,7 +27,9 @@ pub fn NORM_GTO(l: f64, m: f64, n: f64, a: f64) -> f64{
             double_fac((2.0*m-1.0)as i64) as f64*
             double_fac((2.0*n-1.0)as i64) as f64
         )
-    ) .powf(1.0/2.0)
+    ) .powf(1.0/2.0);
+
+    return val;
 }
 
 pub fn STO(){}

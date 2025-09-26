@@ -40,11 +40,11 @@ pub fn boys(t: f64) -> f64{
         return 1.0 - t/3.0 + t*t/10.0; // taylor expansion
     }
 
-    if t > 1e6 {
+    if t.abs() > 50.0 {
         return 1.0 / (2.0*t);
     }
 
-    return (1.0/2.0) * (PI/t).sqrt() * erf(t.sqrt() as f64) as f64;
+    return (1.0/2.0) * (PI/t).sqrt() * erf(t.sqrt());
 }
 
 // - linalg
@@ -67,7 +67,7 @@ impl M {
     pub fn print_m(&self){
         for v in &self.m{
             for el in v{
-                print!("{} ", el);
+                print!("{:.3} ", el);
             }
             println!("");
         }
